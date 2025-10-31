@@ -1,5 +1,6 @@
 """Backend for OpenRouter API"""
 
+import json
 import logging
 import os
 import time
@@ -45,10 +46,12 @@ def query(
     _setup_openrouter_client()
     filtered_kwargs: dict = select_values(notnone, model_kwargs)  # type: ignore
 
+    # Handle structured output via OpenRouter's tool calling support (matching OpenAI backend)
     if func_spec is not None:
-        raise NotImplementedError(
-            "We are not supporting function calling in OpenRouter for now."
-        )
+        filtered_kwargs["tools"] = [func_spec.as_openai_tool_dict]
+        # Force the model to use the function
+        filtered_kwargs["tool_choice"] = func_spec.openai_tool_choice_dict
+        logger.info(f"Using OpenRouter tool calling for {func_spec.name}")
 
     # in case some backends dont support system roles, just convert everything to user
     messages = [
@@ -72,7 +75,26 @@ def query(
     )
     req_time = time.time() - t0
 
-    output = completion.choices[0].message.content
+    choice = completion.choices[0]
+
+    # Parse response based on whether tool calling was used
+    if func_spec is None:
+        output = choice.message.content
+    else:
+        assert (
+            choice.message.tool_calls
+        ), f"tool_calls is empty, not a tool call response: {choice.message}"
+        assert (
+            choice.message.tool_calls[0].function.name == func_spec.name
+        ), f"Function name mismatch: expected {func_spec.name}, got {choice.message.tool_calls[0].function.name}"
+        try:
+            output = json.loads(choice.message.tool_calls[0].function.arguments)
+            logger.info(f"Successfully parsed tool call response for {func_spec.name}")
+        except json.JSONDecodeError as e:
+            logger.error(
+                f"Error decoding function arguments: {choice.message.tool_calls[0].function.arguments}"
+            )
+            raise e
 
     in_tokens = completion.usage.prompt_tokens
     out_tokens = completion.usage.completion_tokens
