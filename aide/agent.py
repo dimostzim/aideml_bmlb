@@ -149,15 +149,15 @@ class Agent:
             f"<TOTAL_TIME_REMAINING: {format_time(tot_time_remaining)}>",
             f"<TOTAL_STEPS_REMAINING: {self.acfg.steps - self.current_step}>",
             "The code should **implement the proposed solution**, **print the value of the evaluation metric computed on a hold-out validation set**,",
-            "**AND MOST IMPORTANTLY SAVE PREDICTIONS ON THE PROVIDED UNLABELED TEST DATA IN A `submission.csv` FILE IN THE ./submission/ DIRECTORY.**",
+            "**AND MOST IMPORTANTLY SAVE PREDICTIONS ON THE PROVIDED UNLABELED TEST DATA IN A `submission.csv` FILE IN THE /home/submission/ DIRECTORY.**",
             "The code should be a single-file python program that is self-contained and can be executed as-is.",
             "No parts of the code should be skipped, don't terminate the before finishing the script.",
             "Your response should only contain a single code block.",
             f"Be aware of the running time of the code, it should complete within {humanize.naturaldelta(exec_timeout)}.",
             'All the provided input data is stored in directory mentioned in the instructions.',
-            '**If there is test data provided for this task, please save the test predictions in a `submission.csv` file in the specified directory as described in the task description** This is extremely important since this file is used for grading/evaluation. DO NOT FORGET THE submission.csv file!',
+            '**If there is test data provided for this task, please save the test predictions in a `submission.csv` file under `/home/submission/` as described in the task description** This is extremely important since this file is used for grading/evaluation. DO NOT FORGET THE submission.csv file!',
             'You can also use the directory mentioned in the instructions to store any temporary files that your code needs to create.',
-            "REMEMBER THE ./submission/submission.csv FILE!!!!! The correct directory is important too.",
+            "REMEMBER THE /home/submission/submission.csv FILE!!!!! The correct directory is important too.",
         ]
         if self.acfg.expose_prediction:
             impl_guideline.append(
