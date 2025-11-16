@@ -207,40 +207,9 @@ class Agent:
         return "", completion_text  # type: ignore
 
     def _draft(self) -> Node:
-        introduction = (
-            "You are a Kaggle grandmaster attending a competition. "
-            "In order to win this competition, you need to come up with an excellent and creative plan "
-            "for a solution and then implement this solution in Python. We will now provide a description of the task."
-        )
-        if self.acfg.obfuscate:
-            introduction = (
-                "You are an expert machine learning engineer attempting a task. "
-                "In order to complete this task, you need to come up with an excellent and creative plan "
-                "for a solution and then implement this solution in Python. We will now provide a description of the task."
-            )
-        prompt: Any = {
-            "Introduction": introduction,
-            "Task description": self.task_desc,
-            "Memory": self.journal.generate_summary(),
-            "Instructions": {},
-        }
-        prompt["Instructions"] |= self._prompt_resp_fmt
-        prompt["Instructions"] |= {
-            "Solution sketch guideline": [
-                "This first solution design should be relatively simple, without ensembling or hyper-parameter optimization.",
-                "Take the Memory section into consideration when proposing the design,"
-                " don't propose the same modelling solution but keep the evaluation the same.",
-                "The solution sketch should be 3-5 sentences.",
-                "Propose an evaluation metric that is reasonable for this task.",
-                "Don't suggest to do EDA.",
-                "The data is already prepared and available in the directory mentioned in the instructions. There is no need to unzip any files."
-            ]
-        }
-        prompt["Instructions"] |= self._prompt_impl_guideline
-        prompt["Instructions"] |= self._prompt_environment
-
-        if self.acfg.data_preview:
-            prompt["Data Overview"] = self.data_preview
+        # For BioML-bench: Use task description directly without AIDE-specific wrapper sections
+        # This normalizes AIDE with other agents (BioMNI, STELLA) that receive instructions directly
+        prompt: Any = self.task_desc
 
         plan, code = self.plan_and_code_query(prompt)
         new_node = Node(plan=plan, code=code)
